@@ -30,7 +30,7 @@ import (
 // goWorker is the actual executor who runs the tasks,
 // it starts a goroutine that accepts tasks and
 // performs function calls.
-type goWorker struct {
+type goWorker struct { // 协程对象
 	// pool who owns this worker.
 	pool *Pool
 
@@ -44,11 +44,12 @@ type goWorker struct {
 // run starts a goroutine to repeat the process
 // that performs the function calls.
 func (w *goWorker) run() {
-	w.pool.addRunning(1)
+	w.pool.addRunning(1) // 表示协程对象，正在活跃（等待 task任务处理）
 	go func() {
 		defer func() {
 			w.pool.addRunning(-1)
-			w.pool.workerCache.Put(w)
+			w.pool.workerCache.Put(w) //回收 协程对象
+
 			if p := recover(); p != nil {
 				if ph := w.pool.options.PanicHandler; ph != nil {
 					ph(p)
@@ -61,12 +62,12 @@ func (w *goWorker) run() {
 		}()
 
 		for f := range w.task {
-			if f == nil {
+			if f == nil { // 停止协程
 				return
 			}
-			f()
-			if ok := w.pool.revertWorker(w); !ok {
-				return
+			f()                                    // 执行函数
+			if ok := w.pool.revertWorker(w); !ok { // 这个目的在于自动的回收 *goWorker协程对象
+				return // 恢复失败
 			}
 		}
 	}()

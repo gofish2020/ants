@@ -11,6 +11,7 @@ type loopQueue struct {
 	isFull bool
 }
 
+// 循环队列
 func newWorkerLoopQueue(size int) *loopQueue {
 	return &loopQueue{
 		items: make([]worker, size),
@@ -56,6 +57,7 @@ func (wq *loopQueue) insert(w worker) error {
 	return nil
 }
 
+// 获取一个worker出来（从head获取，并从循环队列中删除）
 func (wq *loopQueue) detach() worker {
 	if wq.isEmpty() {
 		return nil
@@ -70,6 +72,7 @@ func (wq *loopQueue) detach() worker {
 	return w
 }
 
+// 提出长时间没有使用的 *goWorker
 func (wq *loopQueue) refresh(duration time.Duration) []worker {
 	expiryTime := time.Now().Add(-duration)
 	index := wq.binarySearch(expiryTime)
@@ -78,6 +81,7 @@ func (wq *loopQueue) refresh(duration time.Duration) []worker {
 	}
 	wq.expiry = wq.expiry[:0]
 
+	// 表示 [head,index]之间的都过期了
 	if wq.head <= index {
 		wq.expiry = append(wq.expiry, wq.items[wq.head:index+1]...)
 		for i := wq.head; i < index+1; i++ {
@@ -113,8 +117,8 @@ func (wq *loopQueue) binarySearch(expiryTime time.Time) int {
 
 	// example
 	// size = 8, head = 7, tail = 4
-	// [ 2, 3, 4, 5, nil, nil, nil,  1]  true position
-	//   0  1  2  3    4   5     6   7
+	// [ 2, 3, 4, 5, nil, nil, nil,  1]  [ 2, 3, 4, 5, nil, nil, nil,  1] true position
+	//   0  1  2  3    4   5     6   7     0  1  2  3    4   5     6   7
 	//              tail          head
 	//
 	//   1  2  3  4  nil nil   nil   0   mapped position
@@ -130,7 +134,7 @@ func (wq *loopQueue) binarySearch(expiryTime time.Time) int {
 		// calculate true mid position from mapped mid position
 		tmid = (mid + basel + nlen) % nlen
 		if expiryTime.Before(wq.items[tmid].lastUsedTime()) {
-			r = mid - 1
+			r = mid - 1 // 找更小的索引
 		} else {
 			l = mid + 1
 		}
@@ -146,7 +150,7 @@ func (wq *loopQueue) reset() {
 
 retry:
 	if w := wq.detach(); w != nil {
-		w.finish()
+		w.finish() // 让协程停止运行
 		goto retry
 	}
 	wq.items = wq.items[:0]

@@ -56,7 +56,7 @@ type MultiPool struct {
 // NewMultiPool instantiates a MultiPool with a size of the pool list and a size
 // per pool, and the load-balancing strategy.
 func NewMultiPool(size, sizePerPool int, lbs LoadBalancingStrategy, options ...Option) (*MultiPool, error) {
-	pools := make([]*Pool, size)
+	pools := make([]*Pool, size) // size 表示多个pool对象
 	for i := 0; i < size; i++ {
 		pool, err := NewPool(sizePerPool, options...)
 		if err != nil {
@@ -78,7 +78,7 @@ func (mp *MultiPool) next(lbs LoadBalancingStrategy) (idx int) {
 		}
 		return
 	case LeastTasks:
-		leastTasks := 1<<31 - 1
+		leastTasks := 1<<31 - 1 // 表示一个极大值
 		for i, pool := range mp.pools {
 			if n := pool.Running(); n < leastTasks {
 				leastTasks = n

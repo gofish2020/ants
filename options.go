@@ -18,19 +18,19 @@ type Options struct {
 	// ExpiryDuration is a period for the scavenger goroutine to clean up those expired workers,
 	// the scavenger scans all workers every `ExpiryDuration` and clean up those workers that haven't been
 	// used for more than `ExpiryDuration`.
-	ExpiryDuration time.Duration
+	ExpiryDuration time.Duration // 过期时间（也就是不再使用以后，过多久）
 
 	// PreAlloc indicates whether to make memory pre-allocation when initializing Pool.
-	PreAlloc bool
+	PreAlloc bool // 是否预分配
 
 	// Max number of goroutine blocking on pool.Submit.
 	// 0 (default value) means no such limit.
-	MaxBlockingTasks int
+	MaxBlockingTasks int // 最大阻塞的任务数量
 
 	// When Nonblocking is true, Pool.Submit will never be blocked.
 	// ErrPoolOverload will be returned when Pool.Submit cannot be done at once.
 	// When Nonblocking is true, MaxBlockingTasks is inoperative.
-	Nonblocking bool
+	Nonblocking bool // 非阻塞模式，submit如果无法处理任务，直接返回错误
 
 	// PanicHandler is used to handle panics from each worker goroutine.
 	// if nil, panics will be thrown out again from worker goroutines.
@@ -41,7 +41,7 @@ type Options struct {
 	Logger Logger
 
 	// When DisablePurge is true, workers are not purged and are resident.
-	DisablePurge bool
+	DisablePurge bool // 是否禁用清除workers的功能，true表示禁用
 }
 
 // WithOptions accepts the whole options config.

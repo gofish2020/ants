@@ -51,11 +51,11 @@ func (wq *workerStack) refresh(duration time.Duration) []worker {
 	wq.expiry = wq.expiry[:0]
 	if index != -1 {
 		wq.expiry = append(wq.expiry, wq.items[:index+1]...)
-		m := copy(wq.items, wq.items[index+1:])
+		m := copy(wq.items, wq.items[index+1:]) // 移动 [index+1:]的数据到头部
 		for i := m; i < n; i++ {
-			wq.items[i] = nil
+			wq.items[i] = nil // 将尾部的数据设定为nil
 		}
-		wq.items = wq.items[:m]
+		wq.items = wq.items[:m] // 修改长度为m，容量还是size
 	}
 	return wq.expiry
 }
